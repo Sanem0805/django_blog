@@ -35,3 +35,9 @@ class CustomUser(AbstractBaseUser):
 
     objects = CustomUserManager()
 
+    def has_module_perms(self, app_label) -> bool:
+        return self.is_staff
+    
+    def has_perm(self, obj=None) -> bool:
+        return self.is_staff
+
