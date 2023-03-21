@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from .utils import send_activation_code, create_activation_code
 
 User = get_user_model()
@@ -28,3 +28,43 @@ class RegistrationSerializer(serializers.ModelSerializer):
         create_activation_code(user)
         send_activation_code(user)
         return user
+    
+
+
+class ActivatorSerializer(serializers.Serializer):
+    activation_code = serializers.CharField(max_length=10)
+
+    def validate_activation_code(self, activation_code) -> None:
+        if User.objects.filter(activation_code=activation_code).exists():
+            return activation_code
+        raise serializers.ValidationError('Наверно указан код')
+    
+    def activate(self) -> None:
+        code = self.validated_data.get('activation_code')
+        user = User.objects.get(activation_code=code)
+        user.is_active = True
+        user.activation_code = ''
+        user.save()
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password =serializers.CharField()
+
+    def validate_username(self, username) -> None:
+        if not User.objects.filter(username=username).exists():
+            raise serializers.ValidationError('Неверно указан username')
+        return username
+    
+    def validate(self, attrs):
+        request = self.context.get('request')
+        username = attrs.get('username')
+        password = attrs.get('password')
+        if username and password:
+            user = authenticate(username=username, password=password, request=request)
+            if not user:
+                raise serializers.ValidationError('Неправильно указан логин или пароль')
+        else:
+                raise serializers.ValidationError('логин и пароль обязательны к заполнению')
+        attrs['user'] = user
+        return attrs

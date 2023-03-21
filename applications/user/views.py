@@ -1,6 +1,8 @@
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-from .serializers import RegistrationSerializer
+from rest_framework.request import Request
+from rest_framework.authtoken.views import ObtainAuthToken
+from .serializers import RegistrationSerializer, ActivatorSerializer, LoginSerializer
 
 class RegistrationView(CreateAPIView):
     serializer_class = RegistrationSerializer
@@ -9,4 +11,18 @@ class RegistrationView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response({'message': 'Thanks for registration!'})
+
+class ActivationView(CreateAPIView):
+    def post(self, request, *args, **kwargs) -> None:
+        serializer = ActivatorSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.activate()
+        return Response({'message': 'Аккаунт успешно активирован!'})
+    
+
+class LoginView(ObtainAuthToken):
+    serializer_class = LoginSerializer
+    
+
+
     

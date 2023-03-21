@@ -12,7 +12,7 @@ class CustomUserManager(BaseUserManager):
         user.save()
         return user
     
-    def create(self, username, email, password, **extra_fields) -> None:
+    def create_user(self, username, email, password, **extra_fields) -> None:
         extra_fields.setdefault('is_active', False)
         extra_fields.setdefault('is_staff', False)
         return self._create(username, email, password, **extra_fields)
@@ -40,4 +40,8 @@ class CustomUser(AbstractBaseUser):
     
     def has_perm(self, obj=None) -> bool:
         return self.is_staff
+    
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
