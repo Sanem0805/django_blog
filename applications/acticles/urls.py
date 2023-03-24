@@ -1,8 +1,8 @@
 from rest_framework.routers import DefaultRouter
-from .views import ArticleViewSEt, TagViewSet
+from .views import ArticleViewSet, TagViewSet
 
 router = DefaultRouter()
-router.register('article', ArticleViewSEt, 'articles')
+router.register('article', ArticleViewSet, 'articles')
 router.register('tags', TagViewSet, 'tags')
 
 urlpatterns = router.urls
