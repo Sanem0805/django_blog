@@ -59,16 +59,17 @@ class Comment(models.Model):
     
     def __str__(self) -> str:
         return f'Коментарий от {self.user.username}'
-    class Like(models.Model):
-        user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
-        article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='likes')
+    
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='likes')
 
-        class Meta:
-            verbose_name = 'Лайк'
-            verbose_name_plural = 'Лайки'
+    class Meta:
+        verbose_name = 'Лайк'
+        verbose_name_plural = 'Лайки'
 
-        def __str__(self) -> str:
-            return f'Liked by {self.username}'
+    def __str__(self) -> str:
+        return f'Liked by {self.username}'
         
 class Rating(models.Model):
     RATES = (
