@@ -84,8 +84,18 @@ class Rating(models.Model):
     rate = models.PositiveSmallIntegerField(choices=RATES)
     # rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
         
-
-'''
-1.Написать модель()'''
+    def __str__(self) -> str:
+        return str(self.rate)
+    
+    class Meta:
+        verbose_name = 'Рейтинг'
+        verbose_name_plural = 'Рейтинги'
+        unique_together = ['user', 'article']
+"""  
+1. Написать модель (models.py)
+2. Добавить в админку (admin.py)
+3. Сериализовать ее (serializers.py - нужно создать)
+4. Отобразить во вьюшке (views.py)
+5. Добавить пути (urls.py)"""
 
 

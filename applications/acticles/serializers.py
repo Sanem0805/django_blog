@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Article, Tag, Comment
+from django.db.models import Avg
+from .models import Article, Tag, Comment, Rating, Like
 
 class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,6 +27,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
          representation = super().to_representation(instance)
          representation['tag'] = [tag.title for tag in instance.tag.all()]
+         representation['rating'] = instance.ratings.aggregate(Avg('rate'))['rate__avg']
          return representation
 
 class TagSerializer(serializers.ModelSerializer):
@@ -39,14 +41,39 @@ class CommentSerializer(serializers.ModelSerializer):
 
      class Meta:
           model = Comment
-          fields = ('id', 'user', 'article', 'text', 'created_at', 'updated_at', 'sub_comment')
+          fields = ('id', 'user', 'article', 'text', 'created_at', 'updated_at')
           read_only_fields = ['article']
 
-{
-     "title": 'Post 2',
-     "description": "Some random description",
-     "tag": [
-        1, 2
-     ]
-}
-        
+# {
+#      "title": 'Post 2',
+#      "description": "Some random description",
+#      "tag": [
+#         1, 2
+#      ]
+# }
+
+class RatingSerializer(serializers.ModelSerializer):
+     class Meta:
+          model = Rating
+          fields = ('id', 'user', 'article', 'rate')
+          read_only_fields = ['user', 'article']
+        #   validators = [
+        #        serializers.UniqueTogetherValidator(
+        #             queryset=model.objects.all(),
+        #             fields=('user', 'article'),
+        #             message='Вы уже ставили рейтинг'
+        #        )
+        #   ]
+
+     def validate(self, attrs):
+          user = self.context.get('request').user
+          article = self.context.get('article')
+          rate = Rating.objects.filter(user=user, article=article).exists()
+          if rate:
+               raise serializers.ValidationError({'message': 'rate already exists'})
+          return super().validate(attrs)
+          
+     def create(self, validated_data):
+        validated_data['user'] = self.context.get('request').user
+        return super().create(validated_data)
+     

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Article, Tag, Comment
 from .serializers import ArticleSerializer
-from .serializers import ArticleSerializer, ArticleListSerializer, TagSerializer, CommentSerializer
+from .serializers import ArticleSerializer, ArticleListSerializer, TagSerializer, CommentSerializer, RatingSerializer
 from .permissions import IsAuthor
 
 
@@ -41,19 +41,30 @@ class ArticleViewSet(ModelViewSet):
               return ArticleListSerializer
          elif self.action == 'comment':
               return CommentSerializer
+         elif self.action =='rate_article':
+              return RatingSerializer
          return super().get_serializer_class()
+    
     
     @action(methods=['POST', 'DELETE'], detail=True)
     def comment(self, request, pk=None) -> None:
           article = self.get_object()
      #   Article.objects.get(pk=pk)
           if request.method =='POST':
-               serializer = CommentSerializer(data=request.data)
-               context={'request': request}
+               serializer = CommentSerializer(data=request.data, context={'request': request})
                serializer.is_valid(raise_exception=True)
                serializer.save(user=request.user, article=article)
                return Response(serializer.data, ) 
           return Response({'TODO': 'ДОБАВИТЬ УДАЛЕНИЕ КОММЕНТА'})
+    
+    @action(methods=['POST'], detail=True)
+    def rate_article(self, request, pk=None):
+         article = self.get_object()
+         serializer = RatingSerializer(data=request.data, context={'request':request, 'article': article})
+         serializer.is_valid(raise_exception=True)
+         serializer.save(article=article)
+         return Response(serializer.data)
+    
     
 class CommentViewSet(ModelViewSet):
      queryset = Comment.objects.all()
