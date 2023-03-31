@@ -3,9 +3,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Article, Tag, Comment
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Article, Tag, Comment, Like
 from .serializers import ArticleSerializer
-from .serializers import ArticleSerializer, ArticleListSerializer, TagSerializer, CommentSerializer, RatingSerializer
+from .serializers import ArticleSerializer, ArticleListSerializer, TagSerializer, CommentSerializer, RatingSerializer, LikeSerializer
 from .permissions import IsAuthor
 
 
@@ -37,9 +38,7 @@ class ArticleViewSet(ModelViewSet):
          return super().get_permissions()
     
     def get_serializer_class(self):
-         if self.action == 'list':
-              return ArticleListSerializer
-         elif self.action == 'comment':
+         if self.action == 'comment':
               return CommentSerializer
          elif self.action =='rate_article':
               return RatingSerializer
@@ -64,7 +63,17 @@ class ArticleViewSet(ModelViewSet):
          serializer.is_valid(raise_exception=True)
          serializer.save(article=article)
          return Response(serializer.data)
-    
+    @action(methods=['POST'], detail=True)
+    def like(self, request, pk=None) -> None:
+         article = self.get_object()
+         like = Like.objects.filter(user=request.user, article=article) 
+         if like.exists():
+              like.delete()
+              return Response({'liked': False})
+         else:
+              Like.objects.create(user=request.user, article=article).save()
+              return Response({'liked': True})
+         
     
 class CommentViewSet(ModelViewSet):
      queryset = Comment.objects.all()

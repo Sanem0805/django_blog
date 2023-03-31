@@ -67,6 +67,7 @@ class Like(models.Model):
     class Meta:
         verbose_name = 'Лайк'
         verbose_name_plural = 'Лайки'
+        unique_together = ('user', 'article')
 
     def __str__(self) -> str:
         return f'Liked by {self.username}'
